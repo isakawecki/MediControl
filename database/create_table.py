@@ -13,6 +13,9 @@ def init_db():
             senha TEXT NOT NULL
         )
 ''')
-    
     conn.commit()
     conn.close()
+    
+    print("Tabela criada com sucesso!")
+
+init_db()
