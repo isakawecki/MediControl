@@ -1,10 +1,23 @@
-import customtkinter as ctk #lib para interface gráfica
+import customtkinter as ctk #para interface gráfica
 from database.salvar_user import salvar_usuario #importação da função para salvar usuario no banco
 from validacao import validar_nome, validar_email, validar_cpf #importação das funções de validações
 import bcrypt #lib para encryptar senha
 import re #lib de expressão regular para validações
 import sqlite3 #importação do sqlite
 
+
+#função para ir para a tela de login
+def ir_para_login():
+
+    #fecha a janela atual do cadastro
+    janela.destroy()
+
+    #import do arquivo de login
+    import gui.gui_login
+
+    #recarrega o arquivo para garantir que a tela abra
+    import importlib
+    importlib.reload(gui.gui_login)
 
 def cadastrar():
     #Escopo para resultado dos inputs, nome válido, nome inválido, etc
@@ -140,11 +153,27 @@ resultado_senha.pack()
 botao_cadastro = ctk.CTkButton(
 janela,text='Cadastrar-se', command=cadastrar) #Instanciando a funcao cadastrar
 
+# Exibe o botão de cadastro na tela
 botao_cadastro.pack(pady=20)
 
 # resultado do cadastro
 resultado_cadastro = ctk.CTkLabel(janela, text='')
 resultado_cadastro.pack()
+
+
+# Cria um botão para voltar para a tela de login
+botao_login = ctk.CTkButton(
+    janela,                 
+    text="Já tenho conta",   
+    command=ir_para_login 
+)
+
+# Exibe o botão na tela
+# pady=10 adiciona espaçamento vertical de 10 pixels
+botao_login.pack(pady=10)
+
+
+
 
 # deixar a janela rodando
 janela.mainloop()
