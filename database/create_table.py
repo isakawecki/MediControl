@@ -61,27 +61,7 @@ def init_db():
         )
 
     ''')
-    #tabela de histórico de remédios
-    cursor.execute('''
-        CREATE TABLE IF NOT EXISTS historico_remedios(
-
-            id_historico INTEGER PRIMARY KEY AUTOINCREMENT,
-
-            remedio_id INTEGER NOT NULL,
-
-            usuario_id INTEGER NOT NULL,
-
-            data TEXT NOT NULL,
-
-            status TEXT NOT NULL,
-
-            FOREIGN KEY (remedio_id)
-            REFERENCES remedios(id_remedio),
-
-            FOREIGN KEY (usuario_id)
-            REFERENCES usuarios(id_usuario)
-        )
-    ''')
+    
 
 
     #salva alterações no banco
