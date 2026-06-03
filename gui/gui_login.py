@@ -1,24 +1,38 @@
-import customtkinter as ctk #importa a biblioteca usada para criar a interface gráfica
-import bcrypt #importa o bcrypt para comparar a senha digitada com a senha criptografada do banco
-from database.connection import get_connection #Importa a conexão com o banco de dados
-from validacao import validar_email #Importa a validação de email que você já tem no projeto
+import customtkinter as ctk # importa a biblioteca usada para criar a interface gráfica
+import bcrypt # importa o bcrypt para comparar a senha digitada com a senha criptografada do banco
+import time # importa o time que serve para controlar o tempo de bloqueio do login
+from database.connection import get_connection # importa a conexão com o banco de dados
+from validacao import validar_email # importa a validação de email que foi criada em validacao.py
 
 
-#Função para buscar um usuário no banco pelo email
+#guarda quantas vezes o usuário errou o login
+tentativas = 0
+
+#quantidade máxima de tentativas permitidas para errar a senha
+MAX_TENTATIVAS = 3
+
+#tempo que o login ficará bloqueado após muitas tentativas erradas
+TEMPO_BLOQUEIO = 30
+
+#############################################################################################################
+#função para buscar um usuário no banco pelo email
 def buscar_usuario_por_email(email):
     # Abre conexão com o banco
+    
+    #criando a conecão com o banco 
     cone = get_connection()
 
-    #Cria um cursor para executar comandos SQL
+    #cria um cursor para executar comandos SQL (cursor é quem escreve os comandos no banco)
     cursor = cone.cursor()
 
-    #Busca o usuário que possui o email digitado
+    #busca o usuário que possui o email digitado
+    #cursor fazendo isso
     cursor.execute(
         "SELECT id_usuario, nome, email, senha FROM usuarios WHERE email = ?",
-        (email,)
+        (email,)   # substitui o ? pelo email informado pelo usuário
     )
 
-    #pega  um resultado
+    #pega um resultado
     usuario = cursor.fetchone()
 
     #fecha a conexão com o banco
@@ -27,17 +41,41 @@ def buscar_usuario_por_email(email):
     #retorna o usuário encontrado ou None caso não encontre
     return usuario
 
-
-#função chamada quando clicar no botão de login
+############################################################################################################
+# função chamada quando clicar no botão de login
 def fazer_login():
+    #informa que vamos alterar a variável global tentativas
+    global tentativas
+
     #limpa a mensagem de resultado antes de validar novamente
     resultado_login.configure(text="")
 
-    #pega os valores digitados nos campos
-    email = input_email.get().strip() #strip() remove espaços extras do começo e do fim
+    # verifica se o usuário já atingiu o limite de tentativas
+    if tentativas >= MAX_TENTATIVAS:
+
+        #  mensagem de bloqueio na tela
+        resultado_login.configure(
+            text=f"Muitas tentativas incorretas! Aguarde {TEMPO_BLOQUEIO} segundos.",
+            text_color="red"
+        )
+
+        # atualiza a interface antes de travar o sistema
+        janela.update()
+
+        # bloqueia o login por alguns segundos
+        time.sleep(TEMPO_BLOQUEIO)
+
+        # depois do bloqueio, zera as tentativas
+        tentativas = 0
+
+        # limpa a mensagem após o tempo de bloqueio
+        resultado_login.configure(text="")
+
+    # pega os valores digitados nos campos
+    email = input_email.get().strip() # strip() remove espaços extras do começo e do fim
     senha = input_senha.get().strip()
 
-    #valida se o email está correto (usando a função que está no validacao.py)
+    # valida se o email está correto
     if not validar_email(email):
         resultado_login.configure(
             text="Email inválido",
@@ -56,72 +94,114 @@ def fazer_login():
     #busca o usuário no banco pelo email
     usuario = buscar_usuario_por_email(email)
 
-    #se não encontrou usuário, mostra erro
+    # se não encontrou usuário, soma uma tentativa errada
     if usuario is None:
+        tentativas += 1
+
+        # calcula quantas tentativas ainda restam
+        restantes = MAX_TENTATIVAS - tentativas
+
         resultado_login.configure(
-            text="Email não cadastrado",
+            text=f"Email não cadastrado. Tentativas restantes: {restantes}",
             text_color="red"
         )
         return
 
-    #se encontrou separa os dados retornados do banco
+    # se encontrou, separa os dados retornados do banco
     id_usuario, nome, email_banco, senha_hash = usuario
 
-    #compara a senha digitada com a senha salva no banco (a senha salva no banco foi criptografada, por isso o bcrypt.checkpw)
-    senha_correta = bcrypt.checkpw(
-        senha.encode(),
-        senha_hash.encode()
+    #compara a senha digitada com a senha salva no banco
+    senha_correta = bcrypt.checkpw(   #retorna True ou False
+        senha.encode(),  #encode transforma a senha em bytes 
+        senha_hash.encode() #converte o hash (senha criptografada) do banco para bytes
     )
-    # Se a senha estiver errada, mostra erro
+
+    #see a senha estiver errada, soma uma tentativa
     if not senha_correta:
+        tentativas += 1
+
+        #calcula quantas tentativas restam
+        restantes = MAX_TENTATIVAS - tentativas
+
         resultado_login.configure(
-            text="Senha incorreta",
+            text=f"Senha incorreta. Tentativas restantes: {restantes}",
             text_color="red"
         )
         return
-    # se o login deu certo aparece isso
+
+       
+       
+
+#se chegou aqui, o login deu certo
+
+    # zera as tentativas erradas
+    tentativas = 0
+
+    # mensagem que deu certo 
     resultado_login.configure(
         text=f"Bem-vindo(a), {nome}!",
         text_color="green"
     )
 
-    # nessa parte será adicionado o codigo para tela principal
-  
+    #atualiza a tela para  conseguir ver a mensagem
+    janela.update()
+    
+    # Importa o arquivo de sessão.py
+    import sessao
 
+# Salva quem é o usuário logado (la no sessao.py vai sair o none e vai ficar o id e o nome de quem logou)
+    sessao.usuario_logado = id_usuario
+    sessao.nome_usuario_logado = nome
+
+   #fecha a janela do login
+    janela.destroy()
+
+#importa e recarrega a tela principal
+    import importlib
+    import gui.gui_sistema
+
+    importlib.reload(gui.gui_sistema)
+
+
+#################################################################################################################
 
 # Função para sair do login e abrir a tela de cadastro
 def ir_para_cadastro():
-    # Fecha a janela atual 
+    # Fecha a janela atual
     janela.destroy()
 
-    #importa o arquivo de cadastro
-    #como o gui_cadastro.py tem mainloop no final, ele já abre a janela  ---- arrumar isso
+    # Importa o arquivo de cadastro
+    # Como o gui_cadastro.py tem janela.mainloop() no final,
+    # ao importar ele, a tela de cadastro será aberta
     import gui.gui_cadastro
 
+###################################################################################################################
 
-#define o modo escuro da interface
+#Aqui é a configuração da interface do login - onde se usa a biblioteca customtkinter para criar as coisas
+#define o modo escuro
 ctk.set_appearance_mode("dark")
+
 
 #cria a janela principal do login
 janela = ctk.CTk()
 
 #define o tamanho da janela
-janela.geometry("400x500")
+janela.geometry("750x600")
 
 #define o título
 janela.title("Login - MediControl")
 
 
-#titulo principal da tela
+#título principal da tela
 titulo = ctk.CTkLabel(
     janela,
     text="MediControl",
     font=("Arial", 28, "bold")
 )
-titulo.pack(pady=30)
+titulo.pack(pady=30) # pack() é quem coloca o elemento na tela e pady é o espaço em cima e embaixo 
 
 
-#texto ddo input email
+#texto do input email
 label_email = ctk.CTkLabel(
     janela,
     text="Email"
@@ -138,7 +218,7 @@ input_email = ctk.CTkEntry(
 input_email.pack()
 
 
-#texto do input senha
+# texto do input senha
 label_senha = ctk.CTkLabel(
     janela,
     text="Senha"
@@ -146,7 +226,7 @@ label_senha = ctk.CTkLabel(
 label_senha.pack(pady=5)
 
 
-#onde o usuário digita a senha
+# onde usuário digita a senha
 # show="*" faz a senha aparecer escondida
 input_senha = ctk.CTkEntry(
     janela,
@@ -166,7 +246,7 @@ botao_login = ctk.CTkButton(
 botao_login.pack(pady=20)
 
 
-#texto que mostra erro ou sucesso no login
+# textinho que mostra erro ou sucesso no login
 resultado_login = ctk.CTkLabel(
     janela,
     text=""
@@ -174,7 +254,7 @@ resultado_login = ctk.CTkLabel(
 resultado_login.pack(pady=5)
 
 
-#botão para ir para a tela de cadastro
+#botao para ir para a tela de cadastro
 botao_cadastro = ctk.CTkButton(
     janela,
     text="Não tenho conta",
@@ -183,5 +263,5 @@ botao_cadastro = ctk.CTkButton(
 botao_cadastro.pack(pady=10)
 
 
-#antém a janela aberta
+#mantém a janela aberta
 janela.mainloop()
