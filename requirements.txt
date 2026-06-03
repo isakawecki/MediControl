@@ -1,0 +1,11 @@
+bcrypt==5.0.0
+customtkinter==5.2.2
+darkdetect==0.8.0
+dnspython==2.8.0
+email-validator==2.3.0
+idna==3.18
+packaging==26.2
+validate-docbr==2.0.0
+
+#Instalar as dependências
+    #pip install -r requirements.txt
