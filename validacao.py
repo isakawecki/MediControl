@@ -28,13 +28,3 @@ def validar_cpf(numero):
     cpf = CPF()
     numero = numero.strip()
     return cpf.validate(numero)
-
-
-    
-
-
-
-
-
-# autenticacao de usuarios, apos o cadastro o user vai poder fazer login 
-# controle de tentativas de login e bloqueio simples 'email e senha' - 3 tentativas erradas bloqueio por x tempo

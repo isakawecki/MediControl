@@ -1,4 +1,4 @@
-import customtkinter as ctk #para interface gráfica
+import customtkinter as ctk 
 from database.salvar_user import salvar_usuario #importação da função para salvar usuario no banco
 from validacao import validar_nome, validar_email, validar_cpf #importação das funções de validações
 import bcrypt #lib para encryptar senha
@@ -15,11 +15,6 @@ def abrir_tela_cadastro():
         #import do arquivo de login
         from gui.gui_login import abrir_tela_login
         abrir_tela_login()
-
-
-        #recarrega o arquivo para garantir que a tela abra
-        # import importlib
-        # importlib.reload(gui.gui_login)
 
     def cadastrar():
         #Escopo para resultado dos inputs, nome válido, nome inválido, etc
@@ -98,84 +93,87 @@ def abrir_tela_cadastro():
     janela = ctk.CTk()
 
     # Tamanho da janela
-    janela.geometry("400x700")
+    janela.geometry("750x670")
 
     # Titulo da janela
-    janela.title("Cadastro")
+    janela.title("MediControl")
 
-    # Label nome
+    # Configura a coluna para centralizar tudo horizontalmente
+    janela.grid_columnconfigure(0, weight=1)
+    
+    # ROW 0: Título Principal
+    titulo = ctk.CTkLabel(
+        janela,
+        text="Cadastro",
+        font=("Arial", 28, "bold")
+    )
+    titulo.grid(row=0, column=0, pady=(50, 30), sticky="nsew")
+    
+    # BLOCO NOME (ROWS 1, 2, 3)
     label_nome = ctk.CTkLabel(janela, text='Nome')
-    label_nome.pack(pady=5)
+    label_nome.grid(row=1, column=0, padx=250, pady=(5, 2), sticky="w") 
 
-    # Campo de entrada do nome
-    input_nome = ctk.CTkEntry(janela,placeholder_text='Digite seu nome')
-    input_nome.pack()
+    input_nome = ctk.CTkEntry(janela, placeholder_text='Digite seu nome', width=250)
+    input_nome.grid(row=2, column=0, padx=250, pady=(0, 2))
 
-    # Campo da mensagem de erro ou sucesso
-    resultado_nome = ctk.CTkLabel(janela, text='')
-    resultado_nome.pack()
+    resultado_nome = ctk.CTkLabel(janela, text='', font=("Arial", 11))
+    resultado_nome.grid(row=3, column=0, pady=(0, 5))
 
-    # Label email
+    #BLOCO EMAIL (ROWS 4, 5, 6)
     label_email = ctk.CTkLabel(janela, text='Email')
-    label_email.pack(pady=5)
+    label_email.grid(row=4, column=0, padx=250, pady=(5, 2), sticky="w") 
 
-    # Campo de entrada do email
-    input_email = ctk.CTkEntry(janela,placeholder_text='Digite seu email')
-    input_email.pack()
+    input_email = ctk.CTkEntry(janela, placeholder_text='Digite seu email', width=250)
+    input_email.grid(row=5, column=0, padx=250, pady=(0, 2))
 
-    # Campo da mensagem de erro ou sucesso
-    resultado_email = ctk.CTkLabel(janela, text='')
-    resultado_email.pack()
+    resultado_email = ctk.CTkLabel(janela, text='', font=("Arial", 11))
+    resultado_email.grid(row=6, column=0, pady=(0, 5))
 
-    # Label cpf
+    #BLOCO CPF (ROWS 7, 8, 9)
     label_cpf = ctk.CTkLabel(janela, text='CPF')
-    label_cpf.pack(pady=5)
+    label_cpf.grid(row=7, column=0, padx=250, pady=(5, 2), sticky="w") 
 
-    # Campo de entrada do cpf
-    input_cpf = ctk.CTkEntry(janela,placeholder_text='Digite seu cpf')
-    input_cpf.pack()
+    input_cpf = ctk.CTkEntry(janela, placeholder_text='Digite seu cpf', width=250)
+    input_cpf.grid(row=8, column=0, padx=250, pady=(0, 2))
 
-    # Campo da mensagem de erro ou sucesso
-    resultado_cpf = ctk.CTkLabel(janela, text='')
-    resultado_cpf.pack()
+    resultado_cpf = ctk.CTkLabel(janela, text='', font=("Arial", 11))
+    resultado_cpf.grid(row=9, column=0, pady=(0, 5))
 
-    # Label senha
+    #BLOCO SENHA (ROWS 10, 11, 12)
     label_senha = ctk.CTkLabel(janela, text='Senha')
-    label_senha.pack(pady=5)
+    label_senha.grid(row=10, column=0, padx=250, pady=(5, 2), sticky="w") 
 
-    # Campo de entrada da senha
-    input_senha = ctk.CTkEntry(janela,placeholder_text='Digite sua senha',show="*")
-    input_senha.pack()
+    input_senha = ctk.CTkEntry(janela, placeholder_text='Digite sua senha', show="*", width=250)
+    input_senha.grid(row=11, column=0, padx=250, pady=(0, 2))
 
-    # Campo da mensagem de erro ou sucesso
-    resultado_senha = ctk.CTkLabel(janela, text='')
-    resultado_senha.pack()
+    resultado_senha = ctk.CTkLabel(janela, text='', font=("Arial", 11))
+    resultado_senha.grid(row=12, column=0, pady=(0, 10))
 
-    # botão
+    #RESULTADO DO CADASTRO (ROW 13)
+    resultado_cadastro = ctk.CTkLabel(janela, text='', font=("Arial", 12, "bold"))
+    resultado_cadastro.grid(row=13, column=0, pady=5)
+
+    #BOTÃO CADASTRAR (ROW 14)
     botao_cadastro = ctk.CTkButton(
-    janela,text='Cadastrar-se', command=cadastrar) #Instanciando a funcao cadastrar
+        janela, 
+        text='Cadastrar-se', 
+        width=250, 
+        height=35, 
+        font=("Arial", 14, "bold"),
+        command=cadastrar
+    )
+    botao_cadastro.grid(row=14, column=0, pady=(5, 5))
 
-    # Exibe o botão de cadastro na tela
-    botao_cadastro.pack(pady=20)
-
-    # resultado do cadastro
-    resultado_cadastro = ctk.CTkLabel(janela, text='')
-    resultado_cadastro.pack()
-
-
-    # Cria um botão para voltar para a tela de login
+    #BOTÃO VOLTAR LOGAR (ROW 15)
     botao_login = ctk.CTkButton(
         janela,                 
         text="Já tenho conta",   
+        fg_color="transparent",
+        text_color="#1f538d",
+        hover_color="#242424",
         command=ir_para_login 
     )
+    botao_login.grid(row=15, column=0, pady=(5, 15))
 
-    # Exibe o botão na tela
-    # pady=10 adiciona espaçamento vertical de 10 pixels
-    botao_login.pack(pady=10)
-
-
-
-
-    # deixar a janela rodando
+    #mantém a janela aberta
     janela.mainloop()

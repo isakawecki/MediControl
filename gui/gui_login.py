@@ -11,8 +11,6 @@ def abrir_tela_login():
     #quantidade máxima de tentativas permitidas para errar a senha
     MAX_TENTATIVAS = 3
 
-    #tempo que o login ficará bloqueado após muitas tentativas erradas
-    TEMPO_BLOQUEIO = 30
 
     #############################################################################################################
     #função para buscar um usuário no banco pelo email
@@ -42,6 +40,26 @@ def abrir_tela_login():
         return usuario
 
     ############################################################################################################
+    # FUNÇÃO AUXILIAR executa a contagem regressiva na tela 
+    def atualizar_contagem_bloqueio(tempo_restante):
+        # Atualiza o texto com o tempo descendo de 1 em 1 segundo
+        nonlocal tentativas
+
+        if tempo_restante > 0:
+            #  mensagem de bloqueio na tela
+            resultado_login.configure(
+                text=f"Muitas tentativas incorretas! Aguarde {tempo_restante} segundos.",
+                text_color="red"
+            )
+            # Execução da função para daqui a 1000ms (1 segundo) passando o tempo reduzido
+            janela.after(1000, atualizar_contagem_bloqueio, tempo_restante - 1)
+        else:
+            # O tempo acabou zera os erros, limpa as mensagens e reativa os botões do sistema
+            tentativas = 0
+            resultado_login.configure(text="")
+            botao_login.configure(state="normal")
+            botao_cadastro.configure(state="normal")
+
     # função chamada quando clicar no botão de login
     def fazer_login():
         #informa que vamos alterar a variável global tentativas
@@ -52,24 +70,14 @@ def abrir_tela_login():
 
         # verifica se o usuário já atingiu o limite de tentativas
         if tentativas >= MAX_TENTATIVAS:
-
-            #  mensagem de bloqueio na tela
-            resultado_login.configure(
-                text=f"Muitas tentativas incorretas! Aguarde {TEMPO_BLOQUEIO} segundos.",
-                text_color="red"
-            )
-
-            # atualiza a interface antes de travar o sistema
-            janela.update()
-
-            # bloqueia o login por alguns segundos
-            time.sleep(TEMPO_BLOQUEIO)
-
-            # depois do bloqueio, zera as tentativas
-            tentativas = 0
-
-            # limpa a mensagem após o tempo de bloqueio
-            resultado_login.configure(text="")
+            # Desativa os botões para o usuário não conseguir clicar durante o bloqueio
+            botao_login.configure(state="disabled")
+            botao_cadastro.configure(state="disabled")
+            
+            # Inicia o relógio regressivo começando em 30 segundos
+            atualizar_contagem_bloqueio(30)
+            return
+           
 
         # pega os valores digitados nos campos
         email = input_email.get().strip() # strip() remove espaços extras do começo e do fim
@@ -97,14 +105,17 @@ def abrir_tela_login():
         # se não encontrou usuário, soma uma tentativa errada
         if usuario is None:
             tentativas += 1
-
-            # calcula quantas tentativas ainda restam
             restantes = MAX_TENTATIVAS - tentativas
 
-            resultado_login.configure(
-                text=f"Email não cadastrado. Tentativas restantes: {restantes}",
-                text_color="red"
-            )
+            if tentativas >= MAX_TENTATIVAS:
+                botao_login.configure(state="disabled")
+                botao_cadastro.configure(state="disabled")
+                atualizar_contagem_bloqueio(30)
+            else:
+                resultado_login.configure(
+                    text=f"Email não cadastrado. Tentativas restantes: {restantes}",
+                    text_color="red"
+                )
             return
 
         # se encontrou, separa os dados retornados do banco
@@ -116,53 +127,40 @@ def abrir_tela_login():
             senha_hash.encode() #converte o hash (senha criptografada) do banco para bytes
         )
 
-        #see a senha estiver errada, soma uma tentativa
+        #se a senha estiver errada, soma uma tentativa
         if not senha_correta:
             tentativas += 1
-
-            #calcula quantas tentativas restam
             restantes = MAX_TENTATIVAS - tentativas
 
-            resultado_login.configure(
-                text=f"Senha incorreta. Tentativas restantes: {restantes}",
-                text_color="red"
-            )
+            if tentativas >= MAX_TENTATIVAS:
+                botao_login.configure(state="disabled")
+                botao_cadastro.configure(state="disabled")
+                atualizar_contagem_bloqueio(30)
+            else:
+                resultado_login.configure(
+                    text=f"Senha incorreta. Tentativas restantes: {restantes}",
+                    text_color="red"
+                )
             return
 
-        
-        
-
-    #se chegou aqui, o login deu certo
-
-        # zera as tentativas erradas
+        # se chegou aqui, o login deu certo
         tentativas = 0
 
-        # mensagem que deu certo 
         resultado_login.configure(
             text=f"Bem-vindo(a), {nome}!",
             text_color="green"
         )
 
-        #atualiza a tela para  conseguir ver a mensagem
         janela.update()
         
-        # Importa o arquivo de sessão.py
         import sessao
-
-    # Salva quem é o usuário logado (la no sessao.py vai sair o none e vai ficar o id e o nome de quem logou)
         sessao.usuario_logado = id_usuario
         sessao.nome_usuario_logado = nome
 
-    #fecha a janela do login
         janela.destroy()
-
-    #importa e recarrega a tela principal
-        # import importlib
 
         from gui.gui_sistema import abrir_tela_sistema
         abrir_tela_sistema()
-
-        # importlib.reload(gui.gui_sistema)
 
 
     #################################################################################################################
@@ -179,7 +177,6 @@ def abrir_tela_login():
         abrir_tela_cadastro()
     ###################################################################################################################
 
-    #Aqui é a configuração da interface do login - onde se usa a biblioteca customtkinter para criar as coisas
     #define o modo escuro
     ctk.set_appearance_mode("dark")
 
@@ -191,44 +188,50 @@ def abrir_tela_login():
     janela.geometry("750x600")
 
     #define o título
-    janela.title("Login - MediControl")
+    janela.title("MediControl")
 
+    # Configura as colunas da janela para centralizar o conteúdo
+    janela.grid_columnconfigure(0, weight=1)
 
-    #título principal da tela
+    # 1. Título principal da tela
     titulo = ctk.CTkLabel(
         janela,
-        text="MediControl",
+        text="Login",
         font=("Arial", 28, "bold")
     )
-    titulo.pack(pady=30) # pack() é quem coloca o elemento na tela e pady é o espaço em cima e embaixo 
+    titulo.grid(row=0, column=0, pady=(50, 30), sticky="nsew") # row=0: Primeira linha da tela
 
 
-    #texto do input email
+    # 2. Texto do input email (Alinhado à esquerda)
     label_email = ctk.CTkLabel(
         janela,
-        text="Email"
+        text="Email",
+        font=("Arial", 14)
     )
-    label_email.pack(pady=5)
+    label_email.grid(row=1, column=0, padx=250, pady=(10, 2), sticky="w") 
+    # row=1 | sticky="w" joga o texto para a esquerda (West).
+    # padx=250 serve para alinhar o início do texto com o início do input de largura 250
 
 
-    #input onde o usuário digita o email
+    # 3. Input onde o usuário digita o email
     input_email = ctk.CTkEntry(
         janela,
         placeholder_text="Digite seu email",
         width=250
     )
-    input_email.pack()
+    input_email.grid(row=2, column=0, padx=250, pady=(0, 15)) # row=2
 
 
-    # texto do input senha
+    # 4. Texto do input senha (Alinhado à esquerda)
     label_senha = ctk.CTkLabel(
         janela,
-        text="Senha"
+        text="Senha",
+        font=("Arial", 14)
     )
-    label_senha.pack(pady=5)
+    label_senha.grid(row=3, column=0, padx=250, pady=(10, 2), sticky="w") # row=3 | sticky="w" joga para a esquerda
 
 
-    # onde usuário digita a senha
+    # 5. Onde o usuário digita a senha
     # show="*" faz a senha aparecer escondida
     input_senha = ctk.CTkEntry(
         janela,
@@ -236,33 +239,39 @@ def abrir_tela_login():
         show="*",
         width=250
     )
-    input_senha.pack()
+    input_senha.grid(row=4, column=0, padx=250, pady=(0, 5)) # row=4
 
-
-    #botão para fazer login
-    botao_login = ctk.CTkButton(
-        janela,
-        text="Entrar",
-        command=fazer_login
-    )
-    botao_login.pack(pady=20)
-
-
-    # textinho que mostra erro ou sucesso no login
+    # 6. Textinho que mostra erro ou sucesso no login (Fica logo abaixo da senha)
     resultado_login = ctk.CTkLabel(
         janela,
         text=""
     )
-    resultado_login.pack(pady=5)
+    resultado_login.grid(row=5, column=0, pady=5) # row=5
+
+    # 7. Botão para fazer login
+    botao_login = ctk.CTkButton(
+        janela,
+        text="Entrar",
+        width=250,
+        height=40,
+        font=("Arial", 15, "bold"),
+        command=fazer_login
+    )
+    botao_login.grid(row=6, column=0, pady=(15, 10)) # row=6
 
 
-    #botao para ir para a tela de cadastro
+
+
+    # 8. Botão para ir para a tela de cadastro
     botao_cadastro = ctk.CTkButton(
         janela,
         text="Não tenho conta",
+        fg_color="transparent", #Remove o fundo azul dele
+        text_color="#1f538d", #Deixa o texto com a cor azul padrão
+        hover_color="#242424",#Cor de fundo suave quando passa o mouse por cima
         command=ir_para_cadastro
     )
-    botao_cadastro.pack(pady=10)
+    botao_cadastro.grid(row=7, column=0, pady=10) #row=7
 
 
     #mantém a janela aberta

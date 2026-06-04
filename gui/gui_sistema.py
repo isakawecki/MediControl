@@ -238,29 +238,38 @@ def abrir_tela_sistema():
     usuario.pack(pady=5)
 
 
-    frame_form = ctk.CTkFrame(janela)
+   # 1. Mudamos o fg_color para transparent para o frame sumir e os campos ficarem bonitos no fundo escuro
+    frame_form = ctk.CTkFrame(janela, fg_color="transparent")
     frame_form.pack(pady=10, padx=20, fill="x")
 
+    # 2. ESSA É A MÁGICA: Configura as colunas 0 e 1 para expandirem igualmente e centralizarem os campos
+    frame_form.grid_columnconfigure(0, weight=1)
+    frame_form.grid_columnconfigure(1, weight=1)
 
-
-    #configurações dos inputs
+    # 3. Adicionamos o argumento 'sticky' nos inputs para controlar a posição deles em relação ao centro
+    # Input Nome (Alinha à direita da coluna 0, apontando para o centro)
     input_nome = ctk.CTkEntry(frame_form, placeholder_text="Nome do remédio", width=300)
-    input_nome.grid(row=0, column=0, padx=10, pady=5)
+    input_nome.grid(row=0, column=0, padx=10, pady=5, sticky="e")
 
+    # Input Quantidade (Alinha à esquerda da coluna 1, apontando para o centro)
     input_quantidade = ctk.CTkEntry(frame_form, placeholder_text="Quantidade", width=300)
-    input_quantidade.grid(row=0, column=1, padx=10, pady=5)
+    input_quantidade.grid(row=0, column=1, padx=10, pady=5, sticky="w")
 
+    # Input Dose
     input_dose = ctk.CTkEntry(frame_form, placeholder_text="Dose", width=300)
-    input_dose.grid(row=1, column=0, padx=10, pady=5)
+    input_dose.grid(row=1, column=0, padx=10, pady=5, sticky="e")
 
+    # Input Horário
     input_horario = ctk.CTkEntry(frame_form, placeholder_text="Horário", width=300)
-    input_horario.grid(row=1, column=1, padx=10, pady=5)
+    input_horario.grid(row=1, column=1, padx=10, pady=5, sticky="w")
 
+    # Input Dias da semana
     input_dias = ctk.CTkEntry(frame_form, placeholder_text="Dias da semana", width=300)
-    input_dias.grid(row=2, column=0, padx=10, pady=5)
+    input_dias.grid(row=2, column=0, padx=10, pady=5, sticky="e")
 
+    # Input Estoque mínimo
     input_estoque = ctk.CTkEntry(frame_form, placeholder_text="Estoque mínimo", width=300)
-    input_estoque.grid(row=2, column=1, padx=10, pady=5)
+    input_estoque.grid(row=2, column=1, padx=10, pady=5, sticky="w")
 
 
     #lista com todos os campos para facilitar na hora de limpar
