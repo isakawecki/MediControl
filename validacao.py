@@ -6,9 +6,6 @@ from validate_docbr import CPF #lib para vidalção de cpf
 cpf = CPF()
 print(cpf.generate()) 
 
-
-
-
 # Validação de nome
 def validar_nome(nome):
     nome = nome.strip() 

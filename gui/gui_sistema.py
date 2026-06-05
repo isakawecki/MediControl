@@ -149,33 +149,43 @@ def abrir_tela_sistema():
 
 
     ##########################################################################
-    #essa função edita o remédio que foi selecionado
+#essa função edita o remédio que foi selecionado
     def editar():
-        if remedio_selecionado is None:
-            resultado.configure(text="Selecione um remédio primeiro.")
-            return
+     nonlocal remedio_selecionado
 
-        id_remedio = remedio_selecionado[0]
+    #verifica se tem algum remédio selecionado
+     if remedio_selecionado is None:
+        resultado.configure(text="Selecione um remédio primeiro.")
+        return
 
-        nome, quantidade, dose, horario, dias, estoque = pegar_dados()
+    #pega o id do remédio selecionado
+     id_remedio = remedio_selecionado[0]
 
-        if not validar_dados(nome, quantidade, dose, horario, dias, estoque):
-            return
+    #pega os dados digitados nos campos
+     nome, quantidade, dose, horario, dias, estoque = pegar_dados()
 
-        atualizar_remedio(
-            id_remedio,
-            nome,
-            int(quantidade),
-            int(dose),
-            horario,
-            dias,
-            int(estoque)
-        )
+    #valida se os campos estão corretos
+     if not validar_dados(nome, quantidade, dose, horario, dias, estoque):
+        return
 
-        resultado.configure(text="Remédio atualizado com sucesso!")
+    #atualiza o remédio no banco pelo id
+     atualizar_remedio(
+        id_remedio,
+        nome,
+        int(quantidade),
+        int(dose),
+        horario,
+        dias,
+        int(estoque)
+     )
 
-        limpar_campos()
-        carregar_lista()
+    #limpa o remédio selecionado para não ficar editando o mesmo sem querer
+     remedio_selecionado = None
+
+     resultado.configure(text="Remédio atualizado com sucesso!")
+
+     limpar_campos()
+     carregar_lista()
 
 
     ########################################################################################
