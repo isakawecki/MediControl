@@ -59,7 +59,7 @@ def abrir_tela_login():
             resultado_login.configure(text="")
             botao_login.configure(state="normal")
             botao_cadastro.configure(state="normal")
-
+####################################################################################################
     # função chamada quando clicar no botão de login
     def fazer_login():
         #informa que vamos alterar a variável global tentativas

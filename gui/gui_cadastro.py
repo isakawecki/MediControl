@@ -1,11 +1,16 @@
 import customtkinter as ctk 
-from database.salvar_user import salvar_usuario #importação da função para salvar usuario no banco
+from database.user import salvar_usuario #importação da função para salvar usuario no banco
 from validacao import validar_nome, validar_email, validar_cpf #importação das funções de validações
 import bcrypt #lib para encryptar senha
 import re #lib de expressão regular para validações
 import sqlite3 #importação do sqlite
 
+
+##################################################################################
+
 def abrir_tela_cadastro():
+   
+   ############################################
     #função para ir para a tela de login
     def ir_para_login():
 
@@ -15,7 +20,7 @@ def abrir_tela_cadastro():
         #import do arquivo de login
         from gui.gui_login import abrir_tela_login
         abrir_tela_login()
-
+    ################################################
     def cadastrar():
         #Escopo para resultado dos inputs, nome válido, nome inválido, etc
         resultado_nome.configure(text='')
@@ -86,6 +91,10 @@ def abrir_tela_cadastro():
         except Exception:
             resultado_cadastro.configure(text='Ocorreu um erro inesperado!',text_color='red')
 
+   ############################################################################################# 
+    
+     #Area de edição da aparência da janela, tamanho, título, etc
+     
     # aparência da janela
     ctk.set_appearance_mode('dark')
 
@@ -101,7 +110,7 @@ def abrir_tela_cadastro():
     # Configura a coluna para centralizar tudo horizontalmente
     janela.grid_columnconfigure(0, weight=1)
     
-    # ROW 0: Título Principal
+    # Título Principal
     titulo = ctk.CTkLabel(
         janela,
         text="Cadastro",
@@ -109,7 +118,7 @@ def abrir_tela_cadastro():
     )
     titulo.grid(row=0, column=0, pady=(50, 30), sticky="nsew")
     
-    # BLOCO NOME (ROWS 1, 2, 3)
+    # BLOCO NOME 
     label_nome = ctk.CTkLabel(janela, text='Nome')
     label_nome.grid(row=1, column=0, padx=250, pady=(5, 2), sticky="w") 
 
@@ -119,7 +128,7 @@ def abrir_tela_cadastro():
     resultado_nome = ctk.CTkLabel(janela, text='', font=("Arial", 11))
     resultado_nome.grid(row=3, column=0, pady=(0, 5))
 
-    #BLOCO EMAIL (ROWS 4, 5, 6)
+    #BLOCO EMAIL 
     label_email = ctk.CTkLabel(janela, text='Email')
     label_email.grid(row=4, column=0, padx=250, pady=(5, 2), sticky="w") 
 
@@ -129,7 +138,7 @@ def abrir_tela_cadastro():
     resultado_email = ctk.CTkLabel(janela, text='', font=("Arial", 11))
     resultado_email.grid(row=6, column=0, pady=(0, 5))
 
-    #BLOCO CPF (ROWS 7, 8, 9)
+    #BLOCO CPF
     label_cpf = ctk.CTkLabel(janela, text='CPF')
     label_cpf.grid(row=7, column=0, padx=250, pady=(5, 2), sticky="w") 
 
@@ -139,7 +148,7 @@ def abrir_tela_cadastro():
     resultado_cpf = ctk.CTkLabel(janela, text='', font=("Arial", 11))
     resultado_cpf.grid(row=9, column=0, pady=(0, 5))
 
-    #BLOCO SENHA (ROWS 10, 11, 12)
+    #BLOCO SENHA 
     label_senha = ctk.CTkLabel(janela, text='Senha')
     label_senha.grid(row=10, column=0, padx=250, pady=(5, 2), sticky="w") 
 
@@ -149,11 +158,11 @@ def abrir_tela_cadastro():
     resultado_senha = ctk.CTkLabel(janela, text='', font=("Arial", 11))
     resultado_senha.grid(row=12, column=0, pady=(0, 10))
 
-    #RESULTADO DO CADASTRO (ROW 13)
+    #RESULTADO DO CADASTRO (usuário cadastrado, cpf ou email já cadastrado, erro inesperado, etc)
     resultado_cadastro = ctk.CTkLabel(janela, text='', font=("Arial", 12, "bold"))
     resultado_cadastro.grid(row=13, column=0, pady=5)
 
-    #BOTÃO CADASTRAR (ROW 14)
+    #BOTÃO CADASTRAR 
     botao_cadastro = ctk.CTkButton(
         janela, 
         text='Cadastrar-se', 
@@ -164,7 +173,7 @@ def abrir_tela_cadastro():
     )
     botao_cadastro.grid(row=14, column=0, pady=(5, 5))
 
-    #BOTÃO VOLTAR LOGAR (ROW 15)
+    #BOTÃO VOLTAR LOGAR 
     botao_login = ctk.CTkButton(
         janela,                 
         text="Já tenho conta",   

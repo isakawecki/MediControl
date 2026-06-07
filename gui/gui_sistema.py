@@ -1,7 +1,10 @@
 import customtkinter as ctk # importa a biblioteca usada para criar a interface gráfica
 import sessao # importa o arquivo de sessao.py para acessar os dados do usuário que esta logado
+from datetime import date # importa a data atual para registrar quando o remédio foi tomado
+from database.connection import get_connection # importa a conexão com o banco para usar no histórico e atualizar estoque
 
 
+####################################################################################################
 
 def abrir_tela_sistema():
     #aqui tem os imports de cada função do banco que tem nessa tela
@@ -9,12 +12,36 @@ def abrir_tela_sistema():
         salvar_remedio,
         listar_remedios,
         atualizar_remedio,
-        excluir_remedio
+        excluir_remedio,
+        ja_tomou_hoje,
+        salvar_historico_tomou,
+        diminuir_estoque
     )
 
     #essa variável começa vazia porque nenhum remédio foi selecionado ainda
     #quando o usuário clicar em selecionar ela vai guardar os dados daquele remédio
     remedio_selecionado = None
+
+    #########################################################################################
+
+    #essa função é chamada quando o usuário clica no botão "Tomei Hoje"
+    def marcar_tomei_hoje(id_remedio, dose):
+
+        #verifica se esse remédio já foi marcado hoje
+        if ja_tomou_hoje(id_remedio):
+            resultado.configure(text="Esse remédio já foi marcado como tomado hoje.")
+            return
+
+        #salva no histórico que o remédio foi tomado hoje
+        salvar_historico_tomou(id_remedio)
+
+        #diminui a quantidade do remédio conforme a dose cadastrada
+        diminuir_estoque(id_remedio, int(dose))
+
+        resultado.configure(text="Remédio marcado como tomado hoje.")
+
+        #atualiza a lista para mostrar a nova quantidade e remover o botão
+        carregar_lista()
 
 
     #########################################################################################
@@ -100,6 +127,23 @@ def abrir_tela_sistema():
                 command=lambda r=remedio: selecionar_remedio(r)
             ).pack(pady=5)
 
+            #aqui verifica se esse remédio já foi tomado hoje
+            #se já foi tomado, aparece só a mensagem "Tomado hoje"
+            if ja_tomou_hoje(id_remedio):
+                ctk.CTkLabel(
+                    card,
+                    text="Tomado hoje",
+                    text_color="green"
+                ).pack(pady=5)
+
+            #se ainda não foi tomado hoje, aparece o botão para marcar
+            else:
+                ctk.CTkButton(
+                    card,
+                    text="Tomei Hoje",
+                    command=lambda r=id_remedio, d=dose: marcar_tomei_hoje(r, d)
+                ).pack(pady=5)
+
 
     ###########################################################################################
 
@@ -149,49 +193,53 @@ def abrir_tela_sistema():
 
 
     ##########################################################################
-#essa função edita o remédio que foi selecionado
+
+    #essa função edita o remédio que foi selecionado
     def editar():
-     nonlocal remedio_selecionado
+        nonlocal remedio_selecionado
 
-    #verifica se tem algum remédio selecionado
-     if remedio_selecionado is None:
-        resultado.configure(text="Selecione um remédio primeiro.")
-        return
+        #verifica se tem algum remédio selecionado
+        if remedio_selecionado is None:
+            resultado.configure(text="Selecione um remédio primeiro.")
+            return
 
-    #pega o id do remédio selecionado
-     id_remedio = remedio_selecionado[0]
+        #pega o id do remédio selecionado
+        id_remedio = remedio_selecionado[0]
 
-    #pega os dados digitados nos campos
-     nome, quantidade, dose, horario, dias, estoque = pegar_dados()
+        #pega os dados digitados nos campos
+        nome, quantidade, dose, horario, dias, estoque = pegar_dados()
 
-    #valida se os campos estão corretos
-     if not validar_dados(nome, quantidade, dose, horario, dias, estoque):
-        return
+        #valida se os campos estão corretos
+        if not validar_dados(nome, quantidade, dose, horario, dias, estoque):
+            return
 
-    #atualiza o remédio no banco pelo id
-     atualizar_remedio(
-        id_remedio,
-        nome,
-        int(quantidade),
-        int(dose),
-        horario,
-        dias,
-        int(estoque)
-     )
+        #atualiza o remédio no banco pelo id
+        atualizar_remedio(
+            id_remedio,
+            nome,
+            int(quantidade),
+            int(dose),
+            horario,
+            dias,
+            int(estoque)
+        )
 
-    #limpa o remédio selecionado para não ficar editando o mesmo sem querer
-     remedio_selecionado = None
+        resultado.configure(text="Remédio atualizado com sucesso!")
 
-     resultado.configure(text="Remédio atualizado com sucesso!")
+        limpar_campos()
+        carregar_lista()
 
-     limpar_campos()
-     carregar_lista()
+        #limpa o remédio selecionado para não ficar editando o mesmo sem querer
+        remedio_selecionado = None
 
 
     ########################################################################################
 
     #essa função exclui o remédio que foi selecionado
     def excluir():
+        
+        #usa a variável remedio_selecionado da função principal para guardar qual remédio foi selecionado
+        #sem criar uma variável nova só para essa função
         nonlocal remedio_selecionado 
 
         #esse if verifica se tem um remedio selecionado para excluir
@@ -248,20 +296,19 @@ def abrir_tela_sistema():
     usuario.pack(pady=5)
 
 
-   # 1. Mudamos o fg_color para transparent para o frame sumir e os campos ficarem bonitos no fundo escuro
+   # Faz o frame sumir e os campos ficarem bonitos no fundo escuro
     frame_form = ctk.CTkFrame(janela, fg_color="transparent")
     frame_form.pack(pady=10, padx=20, fill="x")
 
-    # 2. ESSA É A MÁGICA: Configura as colunas 0 e 1 para expandirem igualmente e centralizarem os campos
+    # Configura as colunas 0 e 1 para expandirem igualmente e centralizarem os campos
     frame_form.grid_columnconfigure(0, weight=1)
     frame_form.grid_columnconfigure(1, weight=1)
 
-    # 3. Adicionamos o argumento 'sticky' nos inputs para controlar a posição deles em relação ao centro
-    # Input Nome (Alinha à direita da coluna 0, apontando para o centro)
+    # Input Nome 
     input_nome = ctk.CTkEntry(frame_form, placeholder_text="Nome do remédio", width=300)
     input_nome.grid(row=0, column=0, padx=10, pady=5, sticky="e")
 
-    # Input Quantidade (Alinha à esquerda da coluna 1, apontando para o centro)
+    # Input Quantidade 
     input_quantidade = ctk.CTkEntry(frame_form, placeholder_text="Quantidade", width=300)
     input_quantidade.grid(row=0, column=1, padx=10, pady=5, sticky="w")
 
@@ -310,6 +357,7 @@ def abrir_tela_sistema():
 
     frame_lista = ctk.CTkScrollableFrame(janela, width=680, height=270)
     frame_lista.pack(pady=10)
+
 
     #essa função é chamada assim que a tela abre, para mostrar os remedios do usuário
     carregar_lista()
